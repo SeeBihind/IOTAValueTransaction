@@ -13,6 +13,7 @@ import (
 
 func main() {
 	// Sample
+	// dlaksdl
 	// http://goshimmer.docs.iota.org/tutorials/wallet.html
 
 	goshimAPI := client.NewGoShimmerAPI("http://82.165.69.143:8080")
