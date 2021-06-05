@@ -8,6 +8,7 @@ import (
 	walletseed "github.com/iotaledger/goshimmer/client/wallet/packages/seed"
 	"github.com/iotaledger/goshimmer/packages/ledgerstate"
 	"github.com/iotaledger/goshimmer/packages/mana"
+	"github.com/iotaledger/hive.go/identity"
 	"github.com/mr-tron/base58"
 )
 
@@ -17,57 +18,55 @@ func main() {
 	// http://goshimmer.docs.iota.org/tutorials/wallet.html
 
 	goshimAPI := client.NewGoShimmerAPI("http://82.165.69.143:8080")
+	const seed string = "3heE6gdT3aAqRGZ2b7mARTjEQEvuVDACiC3CkDVQ1Nu6"
 
 	// Faucet
+
+	// STEP 1 Seed //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Seed from ./cli-wallet
-	seedBytes, _ := base58.Decode("3heE6gdT3aAqRGZ2b7mARTjEQEvuVDACiC3CkDVQ1Nu6") // ignoring error
+	seedBytes, _ := base58.Decode(seed) // ignoring error
 	mySeed := walletseed.NewSeed(seedBytes)
-	// generate new address
+
+	// Generate new address with index
 	myAddr := mySeed.Address(0)
+	fmt.Println("My Address: ", myAddr.String())
 
-	a, err := goshimAPI.SendFaucetRequest(myAddr.Base58(), 22, "2GtxMQD94KvDH1SJPJV7icxofkyV1njuUZKtsqKmtux5", "2GtxMQD94KvDH1SJPJV7icxofkyV1njuUZKtsqKmtux5")
-
-	fmt.Println("Faucet: ", a, err)
-	fmt.Println("myAddr: ", myAddr)
-
+	// Prüft ob Guthaben zur verfügung steht und nicht bestätigt ist
 	resp, _ := goshimAPI.PostAddressUnspentOutputs([]string{myAddr.Base58()}) // ignoring error
 	for _, output := range resp.UnspentOutputs[0].Outputs {
 		fmt.Println("outputID:", output.Output.OutputID.Base58, "confirmed:", output.InclusionState.Confirmed)
-	}
-
-	resp5, _ := goshimAPI.GetAddressUnspentOutputs(myAddr.Base58()) // ignoring error
-	// iterate over unspent outputs of an address
-	for _, output := range resp5.Outputs {
-		var out ledgerstate.Output
-		out, _ = output.ToLedgerstateOutput() // ignoring error
-
-		out.Balances().ForEach(func(color ledgerstate.Color, balance uint64) bool {
-			fmt.Println("Color:", color.Base58())
-			fmt.Println("Balance:", balance)
-
-			return true
-		})
 
 	}
 
-	// build tx from previous step
-	tx, err := buildTransaction()
+	// STEP 2 Transaction essence ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	var version TransactionEssenceVersion
+	var timestamp time.Time
+	var accessPledgeID identity.ID
+	var consensusPledgeID identity.ID
+	var inputs ledgerstate.Inputs
+	var outputs ledgerstate.Outputs
+
+	// Version und Zeitstempel
+	version = 0
+	timestamp = time.Now()
+
+	fmt.Println("Version:", version, "Zeitstempel:", timestamp)
+
+	// Convert NodeID for accessMana /////////////////////////////////////////////////////////////////////////
+	const nodeID string = "j6nX8BELUcQ"
+	pledgeID, err := mana.IDFromStr(nodeID)
 	if err != nil {
-		fmt.Println(err, "----")
+		fmt.Println("Error pledgeID")
 		return
 	}
-	bytes := tx.Bytes()
+	accessPledgeID = pledgeID
+	consensusPledgeID = pledgeID
+	fmt.Println("AccessPledgeID:", accessPledgeID, "\nConsensusPledgeID:", consensusPledgeID)
+	// ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	// print bytes
-	fmt.Println("done")
-	fmt.Println(string(bytes))
-
-	resps, errs := goshimAPI.PostTransaction(bytes)
-	if errs != nil {
-		fmt.Println(errs)
-		return
-	}
-	fmt.Println("Transaction issued, txID:", resps.TransactionID)
+	// Step 3 Inputs ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Bereitstellen von nicht ausgegebenen Ausgaben
 
 }
 
