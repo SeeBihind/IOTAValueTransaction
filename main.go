@@ -30,15 +30,15 @@ func main() {
 	// Generate new address with index
 	myAddr := mySeed.Address(0)
 
-	messageID, err := goshimAPI.SendFaucetRequest(myAddr.Base58(), 22, "2GtxMQD94KvDH1SJPJV7icxofkyV1njuUZKtsqKmtux5", "2GtxMQD94KvDH1SJPJV7icxofkyV1njuUZKtsqKmtux5")
+	messageID, err := goshimAPI.SendFaucetRequest(myAddr.Base58(), 22, "HwXLhewz61mK3QWiEdRhPt4kDLfmow7knyJrTqLw5rxz", "HwXLhewz61mK3QWiEdRhPt4kDLfmow7knyJrTqLw5rxz")
 	fmt.Println(messageID, err)
 
 	// My DevNet Seed
 	// HnMtW6DsaPGFb4X11VzM9TFVSsJTmhBSPnxYhfm5f89C
 
-	//seedBytes2, _ := base58.Decode("DkxqNM1r1crSFKhnFvarQa3Te2jijjh29voUdYocW8qU")
-	//devNetByte := walletseed.NewSeed(seedBytes2)
-	//devNetAdresse := devNetByte.Address(0)
+	seedBytes2, _ := base58.Decode("DkxqNM1r1crSFKhnFvarQa3Te2jijjh29voUdYocW8qU")
+	devNetByte := walletseed.NewSeed(seedBytes2)
+	devNetAdresse := devNetByte.Address(0)
 
 	fmt.Println("My Address: ", myAddr.String())
 	//fmt.Println("Zieladresse: ", devNetAdresse.String())
@@ -103,7 +103,7 @@ func main() {
 		ledgerstate.ColorIOTA: uint64(1000000),
 	})
 
-	output := ledgerstate.NewOutputs(ledgerstate.NewSigLockedColoredOutput(balance, myAddr.Address()))
+	output := ledgerstate.NewOutputs(ledgerstate.NewSigLockedColoredOutput(balance, devNetAdresse.Address()))
 	kp := *mySeed.KeyPair(0)
 	txEssence := ledgerstate.NewTransactionEssence(version, timestamp, accessPledgeID, consensusPledgeID, inputs, output)
 	signature := ledgerstate.NewED25519Signature(kp.PublicKey, kp.PrivateKey.Sign(txEssence.Bytes()))
