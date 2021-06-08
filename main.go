@@ -41,13 +41,12 @@ func main() {
 	devNetAdresse := devNetByte.Address(0)
 
 	fmt.Println("My Address: ", myAddr.String())
-	//fmt.Println("Zieladresse: ", devNetAdresse.String())
+	fmt.Println("Zieladresse: ", devNetAdresse.String())
 
 	// Prüft ob Guthaben zur verfügung steht und nicht bestätigt ist
-	resp, _ := goshimAPI.PostAddressUnspentOutputs([]string{myAddr.Base58()}) // ignoring error
+	resp, _ := goshimAPI.PostAddressUnspentOutputs([]string{devNetAdresse.Base58()}) // ignoring error
 	for _, output := range resp.UnspentOutputs[0].Outputs {
 		fmt.Println("outputID:", output.Output.OutputID.Base58, "confirmed:", output.InclusionState.Confirmed)
-
 	}
 
 	// STEP 2 Transaction essence ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,7 +66,7 @@ func main() {
 	//fmt.Println("Version:", version, "Zeitstempel:", timestamp)
 
 	// Convert NodeID for accessMana /////////////////////////////////////////////////////////////////////////
-	const nodeID string = "j6nX8BELUcQ"
+	const nodeID string = "HwXLhewz61mK3QWiEdRhPt4kDLfmow7knyJrTqLw5rxz"
 	pledgeID, err := mana.IDFromStr(nodeID)
 	if err != nil {
 		fmt.Println("Error pledgeID")
@@ -81,7 +80,7 @@ func main() {
 	// Step 3 Inputs ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Bereitstellen von nicht ausgegebenen Ausgaben
 
-	resp2, _ := goshimAPI.GetAddressUnspentOutputs(myAddr.Base58()) // ignoring error
+	resp2, _ := goshimAPI.GetAddressUnspentOutputs(devNetAdresse.Base58()) // ignoring error
 
 	// iterate over unspent outputs of an address
 	var out ledgerstate.Output
@@ -103,8 +102,8 @@ func main() {
 		ledgerstate.ColorIOTA: uint64(1000000),
 	})
 
-	output := ledgerstate.NewOutputs(ledgerstate.NewSigLockedColoredOutput(balance, devNetAdresse.Address()))
-	kp := *mySeed.KeyPair(0)
+	output := ledgerstate.NewOutputs(ledgerstate.NewSigLockedColoredOutput(balance, myAddr.Address()))
+	kp := *devNetByte.KeyPair(0)
 	txEssence := ledgerstate.NewTransactionEssence(version, timestamp, accessPledgeID, consensusPledgeID, inputs, output)
 	signature := ledgerstate.NewED25519Signature(kp.PublicKey, kp.PrivateKey.Sign(txEssence.Bytes()))
 	unlockBlock := ledgerstate.NewSignatureUnlockBlock(signature)
@@ -118,3 +117,11 @@ func main() {
 	fmt.Println("Transaction issued, txID:", resp5.TransactionID)
 
 }
+
+/*
+func weg() {
+
+
+
+}
+*/
