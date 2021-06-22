@@ -18,7 +18,7 @@ func main() {
 	// http://goshimmer.docs.iota.org/tutorials/wallet.html
 	//
 	goshimAPI := client.NewGoShimmerAPI("http://82.165.69.143:8080")
-	const seed string = "36af8Dovn8ctmt6WS6xWmtu4KP7GQxb1ZdXSAbbSRLS5"
+	const seed string = "59NYmXzp39JDnBgGcRDxj5fmKjpLx1TA1W5trJWRdtjV"
 
 	// Faucet
 
@@ -30,7 +30,7 @@ func main() {
 	// Generate new address with index
 	myAddr := mySeed.Address(0)
 
-	messageID, err := goshimAPI.SendFaucetRequest(myAddr.Base58(), 22, "HwXLhewz61mK3QWiEdRhPt4kDLfmow7knyJrTqLw5rxz", "HwXLhewz61mK3QWiEdRhPt4kDLfmow7knyJrTqLw5rxz")
+	messageID, err := goshimAPI.SendFaucetRequest(myAddr.Base58(), 22, "5XJFHYitkZMFUHaVE5xNTgKWSDvhueYe7j5LK6Z9n2cb", "5XJFHYitkZMFUHaVE5xNTgKWSDvhueYe7j5LK6Z9n2cb")
 	fmt.Println(messageID, err)
 
 	// My DevNet Seed
@@ -44,7 +44,7 @@ func main() {
 	fmt.Println("Zieladresse: ", devNetAdresse.String())
 
 	// Prüft ob Guthaben zur verfügung steht und nicht bestätigt ist
-	resp, _ := goshimAPI.PostAddressUnspentOutputs([]string{devNetAdresse.Base58()}) // ignoring error
+	resp, _ := goshimAPI.PostAddressUnspentOutputs([]string{myAddr.Base58()}) // ignoring error
 	for _, output := range resp.UnspentOutputs[0].Outputs {
 		fmt.Println("outputID:", output.Output.OutputID.Base58, "confirmed:", output.InclusionState.Confirmed)
 	}
@@ -66,7 +66,7 @@ func main() {
 	//fmt.Println("Version:", version, "Zeitstempel:", timestamp)
 
 	// Convert NodeID for accessMana /////////////////////////////////////////////////////////////////////////
-	const nodeID string = "HwXLhewz61mK3QWiEdRhPt4kDLfmow7knyJrTqLw5rxz"
+	const nodeID string = "5XJFHYitkZMFUHaVE5xNTgKWSDvhueYe7j5LK6Z9n2cb"
 	pledgeID, err := mana.IDFromStr(nodeID)
 	if err != nil {
 		fmt.Println("Error pledgeID")
@@ -80,7 +80,7 @@ func main() {
 	// Step 3 Inputs ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Bereitstellen von nicht ausgegebenen Ausgaben
 
-	resp2, _ := goshimAPI.GetAddressUnspentOutputs(devNetAdresse.Base58()) // ignoring error
+	resp2, _ := goshimAPI.GetAddressUnspentOutputs(myAddr.Base58()) // ignoring error
 
 	// iterate over unspent outputs of an address
 	var out ledgerstate.Output
@@ -102,8 +102,8 @@ func main() {
 		ledgerstate.ColorIOTA: uint64(1000000),
 	})
 
-	output := ledgerstate.NewOutputs(ledgerstate.NewSigLockedColoredOutput(balance, myAddr.Address()))
-	kp := *devNetByte.KeyPair(0)
+	output := ledgerstate.NewOutputs(ledgerstate.NewSigLockedColoredOutput(balance, devNetAdresse.Address()))
+	kp := *mySeed.KeyPair(0)
 	txEssence := ledgerstate.NewTransactionEssence(version, timestamp, accessPledgeID, consensusPledgeID, inputs, output)
 	signature := ledgerstate.NewED25519Signature(kp.PublicKey, kp.PrivateKey.Sign(txEssence.Bytes()))
 	unlockBlock := ledgerstate.NewSignatureUnlockBlock(signature)
